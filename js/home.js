@@ -50,7 +50,10 @@
          style="--cat:${cat.color}">
         <div class="card-top">
           <span class="card-emoji">${d.emoji}</span>
-          <span class="card-cat" style="--cat:${cat.color}">${cat.label}</span>
+          <span class="card-tags">
+            ${d.year ? `<span class="card-year">${d.year}</span>` : ''}
+            <span class="card-cat" style="--cat:${cat.color}">${cat.label}</span>
+          </span>
         </div>
         <h3 class="card-title">${d.title}</h3>
         <div class="card-place">📍 ${d.place}</div>
@@ -60,6 +63,7 @@
           <span class="meter-mount"></span>
           <span class="meter-num">${d.thrill}<span class="meter-max">/10</span></span>
         </div>
+        <span class="card-cta">🔒 只講一半 · 點進來看鉤子</span>
       </a>`;
   }
 
@@ -119,11 +123,45 @@
       `最高驚險指數 <b>${maxThrill}</b> · 平均 <b>${avg}</b>`;
   }
 
+  /* ---------- 地圖 / 時間軸 切換 ---------- */
+  let timelineDrawn = false;
+  function setupViewToggle() {
+    const toggle = document.getElementById('view-toggle');
+    const mapWrap = document.getElementById('world-map');
+    const tlWrap = document.getElementById('timeline');
+    const heading = document.getElementById('view-heading');
+    const hint = document.getElementById('view-hint');
+    if (!toggle) return;
+
+    toggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('.vt-btn');
+      if (!btn) return;
+      const view = btn.dataset.view;
+      toggle
+        .querySelectorAll('.vt-btn')
+        .forEach((b) => b.classList.toggle('active', b === btn));
+
+      const isMap = view === 'map';
+      mapWrap.hidden = !isMap;
+      tlWrap.hidden = isMap;
+      heading.textContent = isMap ? '驚險足跡地圖' : '驚險時間軸';
+      hint.textContent = isMap
+        ? '點擊地圖上的標記，或往下滑看故事卡片'
+        : '由舊到新，一路走到最近的驚險——點任一張卡片看鉤子';
+
+      if (!isMap && !timelineDrawn) {
+        window.renderTimeline('#timeline');
+        timelineDrawn = true;
+      }
+    });
+  }
+
   /* ---------- 啟動 ---------- */
   async function init() {
     renderStats();
     renderFilters();
     renderGrid();
+    setupViewToggle();
     mapApi = await window.renderWorldMap('#world-map');
   }
 

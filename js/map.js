@@ -113,7 +113,7 @@ async function renderWorldMap(containerSelector, { onSelect } = {}) {
       .html(
         `<span class="tip-emoji">${d.emoji}</span>` +
           `<span class="tip-title">${d.title}</span>` +
-          `<span class="tip-place">${d.place}</span>`
+          `<span class="tip-place">${d.year ? d.year + ' · ' : ''}${d.place}</span>`
       )
       .style('left', mx + 'px')
       .style('top', my + 'px')

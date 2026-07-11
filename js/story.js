@@ -36,6 +36,7 @@
     <header class="story-header" style="--cat:${cat.color}">
       <div class="story-head-text">
         <div class="story-meta">
+          ${story.year ? `<span class="story-year">${story.year}</span>` : ''}
           <span class="story-cat" style="--cat:${cat.color}">${cat.label}</span>
           <span class="story-loc">📍 ${story.place}</span>
         </div>
@@ -51,6 +52,13 @@
     </header>
 
     <article class="story-body">${paras}</article>
+
+    ${story.teaser ? `
+    <aside class="story-hook" style="--cat:${cat.color}">
+      <span class="hook-badge">✋ 故事只到這裡</span>
+      <p class="hook-text">${story.teaser}</p>
+      <p class="hook-cta">好奇後續？下次見面，直接問我這一段。</p>
+    </aside>` : ''}
 
     <nav class="story-nav">
       ${prev ? `<a class="nav-prev" href="story.html?id=${encodeURIComponent(prev.id)}">← ${prev.emoji} ${prev.title}</a>` : '<span></span>'}
