@@ -145,6 +145,10 @@
       document.getElementById('pay-note').textContent = cfg.payNote || '';
       cta.hidden = false;
     }
+    // 有序號驗證時，輸入框同時接受密語或購買序號。
+    if (!free && cfg.licenseVerifyUrl) {
+      input.placeholder = '輸入通關密語或購買序號…';
+    }
 
     function reveal(paragraphs) {
       revealBody.innerHTML = paragraphs.map((p) => `<p>${p}</p>`).join('');
@@ -175,12 +179,21 @@
       tryUnlock(Unlock.freeCode(), { silent: true });
     }
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       err.textContent = '';
-      const code = input.value;
-      if (!code.trim()) return;
-      tryUnlock(code, { remember: true });
+      const val = input.value;
+      if (!val.trim()) return;
+      // 先當密語試；失敗且有設定序號驗證 → 當 Gumroad 序號驗證。
+      if (await tryUnlock(val, { remember: true, silent: !!cfg.licenseVerifyUrl })) return;
+      if (cfg.licenseVerifyUrl) {
+        err.textContent = '驗證中…';
+        try {
+          const pass = await Unlock.verifyLicense(val);
+          if (await tryUnlock(pass, { remember: true })) { err.textContent = ''; return; }
+        } catch (_) {}
+        err.textContent = '密語或序號不正確（或已達使用上限）';
+      }
     });
   }
 

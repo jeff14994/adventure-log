@@ -18,12 +18,14 @@
 - [ ] **推薦做法**：Gumroad 建產品 → 「Content」欄位貼上付費密語
       → 買家付款後 Gumroad 自動顯示 + Email 密語，完全免手動
 - [ ] 把 Gumroad 產品連結填入 `js/config.js` payUrl
-- [ ] 進階（防止密語外流）：改用 Gumroad License Key，每人一組唯一碼；
-      網站串 Gumroad license verify API 驗證（需要我再幫你接）
-- [ ] 部署已自動化：push main → GitHub Actions 自動上線 ✅
+- [x] 進階（防外流）：Gumroad License Key 驗證已實作
+      → `worker/gumroad-license.js`（Cloudflare Worker）+ 網站已接好
+      → 👉 **你要做**：部署 Worker、填 licenseVerifyUrl（見 worker 檔頂註解）
+- [x] 部署已自動化：push main → GitHub Actions 自動上線
 
 ## Phase 2 — 產品化（最有價值）
-- [ ] 《美國買車殺價實戰手冊》PDF/Notion — 用 $6k 故事當廣告，賣 NT$490（大綱已備）
+- [x] 《美國買車殺價實戰手冊》完整內容 → `docs/haggle-playbook.md`
+- [ ] 轉成 PDF / Notion，上架 Gumroad，賣 NT$490（用 $6k 故事當廣告）
 - [ ] 越南/東南亞殺價指南（第二本）
 - [ ] Gumroad 上架（處理金流+自動發密語，免後端）
 - [ ] 付費電子報：每月一則完整驚險故事 + 談判技巧

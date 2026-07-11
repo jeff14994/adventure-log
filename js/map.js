@@ -46,6 +46,26 @@ async function renderWorldMap(containerSelector, { onSelect } = {}) {
   );
   const path = d3.geoPath(projection);
 
+  // 漸層與光暈定義（讓地圖更立體、更亮）
+  const defs = svg.append('defs');
+  const ocean = defs.append('radialGradient').attr('id', 'ocean-grad')
+    .attr('cx', '50%').attr('cy', '38%').attr('r', '75%');
+  ocean.append('stop').attr('offset', '0%').attr('stop-color', '#12335c');
+  ocean.append('stop').attr('offset', '100%').attr('stop-color', '#081326');
+  const landg = defs.append('linearGradient').attr('id', 'land-grad')
+    .attr('x1', '0').attr('y1', '0').attr('x2', '0').attr('y2', '1');
+  landg.append('stop').attr('offset', '0%').attr('stop-color', '#3f6ea5');
+  landg.append('stop').attr('offset', '100%').attr('stop-color', '#2b4d78');
+  const glow = defs.append('filter').attr('id', 'pin-glow')
+    .attr('x', '-80%').attr('y', '-80%').attr('width', '260%').attr('height', '260%');
+  glow.append('feGaussianBlur').attr('stdDeviation', '3.2').attr('result', 'b');
+  const fm = glow.append('feMerge');
+  fm.append('feMergeNode').attr('in', 'b');
+  fm.append('feMergeNode').attr('in', 'SourceGraphic');
+
+  // 海洋（球面底）
+  svg.append('path').attr('class', 'map-ocean').attr('d', path({ type: 'Sphere' }));
+
   // 經緯線
   const graticule = d3.geoGraticule10();
   svg
@@ -95,17 +115,18 @@ async function renderWorldMap(containerSelector, { onSelect } = {}) {
   pins
     .append('circle')
     .attr('class', 'pin-pulse')
-    .attr('r', 6)
+    .attr('r', 7)
     .attr('fill', colorOf);
 
-  // 實心點
+  // 實心點（帶光暈）
   pins
     .append('circle')
     .attr('class', 'pin-dot')
-    .attr('r', 5)
+    .attr('r', 6)
     .attr('fill', colorOf)
-    .attr('stroke', '#05070d')
-    .attr('stroke-width', 1.5);
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 1.6)
+    .attr('filter', 'url(#pin-glow)');
 
   function showTip(event, d) {
     const [mx, my] = d3.pointer(event, container);

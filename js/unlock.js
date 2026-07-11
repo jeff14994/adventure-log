@@ -61,5 +61,20 @@ window.Unlock = (function () {
   const savedCode = () => sessionStorage.getItem(KEY);
   const rememberCode = (code) => sessionStorage.setItem(KEY, norm(code));
 
-  return { decryptStory, savedCode, rememberCode, norm, isFree, freeCode };
+  // 用 Gumroad 購買序號向 Worker 換取付費密語（防外流自動化）。
+  // 成功回傳 passphrase 字串；失敗 throw。
+  async function verifyLicense(key) {
+    const url = (window.ADV_CONFIG || {}).licenseVerifyUrl;
+    if (!url) throw new Error('no-verify-url');
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ license_key: String(key).trim() }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!data.ok || !data.passphrase) throw new Error(data.error || 'invalid');
+    return data.passphrase;
+  }
+
+  return { decryptStory, savedCode, rememberCode, norm, isFree, freeCode, verifyLicense };
 })();

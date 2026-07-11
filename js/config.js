@@ -11,6 +11,10 @@ window.ADV_CONFIG = {
   // 電子報 / 名單訂閱連結（Substack / Google Form…）。填了 footer 才顯示。
   newsletterUrl: '',
 
+  // 防外流自動化：Cloudflare Worker 驗證 Gumroad 購買序號的網址。
+  // 填了之後，解鎖框會同時接受「通關密語」或「購買序號」。見 worker/gumroad-license.js。
+  licenseVerifyUrl: '',
+
   // 你的正式網址（分享按鈕用；GitHub Pages 預設如下）。
   siteUrl: 'https://jeff14994.github.io/adventure-log',
 };

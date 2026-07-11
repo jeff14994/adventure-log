@@ -106,9 +106,10 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
 }
 .map-svg { display: block; width: 100%; height: auto; }
-.map-graticule { fill: none; stroke: rgba(139, 155, 180, 0.10); stroke-width: 0.5; }
-.map-land { fill: #16223a; stroke: none; }
-.map-border { fill: none; stroke: rgba(56, 189, 248, 0.18); stroke-width: 0.5; }
+.map-ocean { fill: url(#ocean-grad); }
+.map-graticule { fill: none; stroke: rgba(120, 170, 235, 0.16); stroke-width: 0.5; }
+.map-land { fill: url(#land-grad); stroke: rgba(150, 200, 255, 0.35); stroke-width: 0.5; }
+.map-border { fill: none; stroke: rgba(150, 200, 255, 0.28); stroke-width: 0.4; }
 .map-error { color: var(--text-dim); padding: 40px; text-align: center; }
 
 .pin-pulse { opacity: 0.55; transform-origin: center; animation: pulse 2.4s ease-out infinite; }
