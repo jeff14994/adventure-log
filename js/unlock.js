@@ -37,22 +37,29 @@ window.Unlock = (function () {
     );
   }
 
-  // 解出某則故事的完整段落；密語錯誤會 throw。
-  async function decryptStory(id, rawCode) {
-    const vault = window.VAULT || {};
-    const blob = vault[id];
-    if (!blob) throw new Error('no-vault');
+  async function decryptBlob(blob, code) {
     const bytes = b64ToBytes(blob);
     const salt = bytes.slice(0, 16);
     const iv = bytes.slice(16, 28);
     const ct = bytes.slice(28);
-    const key = await deriveKey(norm(rawCode), salt);
+    const key = await deriveKey(norm(code), salt);
     const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
     return JSON.parse(dec.decode(plain)); // 段落陣列
   }
 
+  // 解某則故事：先試付費 vault，再試免費試閱 vault。都失敗才 throw。
+  async function decryptStory(id, rawCode) {
+    const paid = (window.VAULT || {})[id];
+    const free = (window.VAULT_FREE || {})[id];
+    if (paid) { try { return await decryptBlob(paid, rawCode); } catch (e) {} }
+    if (free) { try { return await decryptBlob(free, rawCode); } catch (e) {} }
+    throw new Error('locked');
+  }
+
+  const isFree = (id) => (window.FREE_IDS || []).includes(id);
+  const freeCode = () => window.FREE_CODE || '';
   const savedCode = () => sessionStorage.getItem(KEY);
   const rememberCode = (code) => sessionStorage.setItem(KEY, norm(code));
 
-  return { decryptStory, savedCode, rememberCode, norm };
+  return { decryptStory, savedCode, rememberCode, norm, isFree, freeCode };
 })();

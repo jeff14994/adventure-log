@@ -3,12 +3,15 @@
 策略：免費鉤子故事 = 流量；付費解鎖 + 殺價教學 = 收入。
 現有的密語加密系統直接變成付費牆（付款 → 給密語）。
 
-## Phase 1 — 立刻能收錢（零後端）
-- [ ] 買杯咖啡按鈕：Buy Me a Coffee / 綠界 / Line Pay 連結放故事鎖下方「解鎖完整故事 NT$99」
-- [ ] 付款後手動私訊密語（先驗證有沒有人願意付）
-- [ ] 分層密語：`tools/build-vault.mjs` 支援多組 code → 免費層(3則)/付費層(全部)
-- [ ] 故事頁加「分享」按鈕（FB/IG/Threads/LINE）+ OG 圖，擴散鉤子
-- [ ] Email 名單：footer 放 Google Form / Substack 訂閱「新故事通知」
+## Phase 1 — 立刻能收錢（零後端）✅ 已實作
+- [x] 分層密語：免費試閱 3 則（自動解鎖，引流）/ 付費密語解全部
+- [x] 付費 CTA 按鈕（故事鎖下方；設定 payUrl 才顯示）
+- [x] 故事頁分享按鈕（LINE / Threads / FB / X / 複製連結）
+- [x] Email 名單 footer 連結（設定 newsletterUrl 才顯示）
+- [x] 站台級 OG / twitter meta
+- [ ] 👉 **你要做**：把 `js/config.js` 的 payUrl / newsletterUrl 填上真實連結
+- [ ] 👉 **你要做**：付款後把付費密語（目前 `staycurious`）寄給買家
+- [ ] 每則故事獨立 OG 圖（需預渲染，見 Phase 4）
 
 ## Phase 2 — 產品化（最有價值）
 - [ ] 《美國買車殺價實戰手冊》PDF/Notion — 用 $6k 故事當廣告，賣 NT$490

@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>驚險人生 — 我的十一次心跳瞬間</title>
   <meta name="description" content="橫跨美國、越南、台灣的十一則驚險經歷，用一張 d3.js 互動地圖串起每一次心跳加速的瞬間。完整故事需要通關密語。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="驚險人生" />
+  <meta property="og:title" content="驚險人生 — 我的十一次心跳瞬間" />
+  <meta property="og:description" content="受困雪山、夜市氣爆、上班車禍、殺價鬥智、當兵驚魂——每個座標都藏著一個我只講一半的故事。" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="css/blog.css" />
 </head>
@@ -52,6 +57,9 @@
     </section>
 
     <footer class="site-footer">
+      <p class="newsletter" id="newsletter" hidden>
+        📬 想在下一則驚險上線時收到通知？<a id="newsletter-link" target="_blank" rel="noopener">訂閱電子報 →</a>
+      </p>
       <p>以 <b>d3.js</b> 打造的個人驚險故事集 · 純靜態、零建置、可直接部署於 GitHub Pages</p>
     </footer>
   </div>
@@ -60,6 +68,7 @@
   <script src="vendor/d3.v7.min.js"></script>
   <script src="vendor/topojson-client.min.js"></script>
   <!-- 資料與渲染 -->
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/map.js"></script>
   <script src="js/timeline.js"></script>

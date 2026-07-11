@@ -57,7 +57,11 @@
       <span class="hook-badge" id="lock-badge">✋ 故事只到這裡</span>
       ${story.teaser ? `<p class="hook-text">${story.teaser}</p>` : ''}
       <div class="lock-ui" id="lock-ui">
-        <p class="lock-prompt">🔒 完整故事上了鎖。跟我要一組通關密語，或直接當面問我這一段。</p>
+        <p class="lock-prompt">🔒 完整故事上了鎖。有通關密語就直接解鎖，或付費取得。</p>
+        <div class="pay-cta" id="pay-cta" hidden>
+          <a class="pay-btn" id="pay-btn" target="_blank" rel="noopener"></a>
+          <span class="pay-note" id="pay-note"></span>
+        </div>
         <form class="lock-form" id="lock-form" autocomplete="off">
           <input id="lock-input" type="password" placeholder="輸入通關密語…" aria-label="通關密語" />
           <button type="submit" class="lock-btn">解鎖</button>
@@ -67,6 +71,17 @@
       <div class="reveal-body" id="reveal-body" hidden></div>
     </aside>
 
+    <div class="share-row" id="share-row">
+      <span class="share-label">覺得精彩？分享鉤子給朋友 👉</span>
+      <div class="share-btns">
+        <a class="share-btn" data-net="line" target="_blank" rel="noopener" title="分享到 LINE">LINE</a>
+        <a class="share-btn" data-net="threads" target="_blank" rel="noopener" title="分享到 Threads">Threads</a>
+        <a class="share-btn" data-net="fb" target="_blank" rel="noopener" title="分享到 Facebook">Facebook</a>
+        <a class="share-btn" data-net="x" target="_blank" rel="noopener" title="分享到 X">X</a>
+        <button class="share-btn" id="copy-btn" type="button" title="複製連結">🔗 複製連結</button>
+      </div>
+    </div>
+
     <nav class="story-nav">
       ${prev ? `<a class="nav-prev" href="story.html?id=${encodeURIComponent(prev.id)}">← ${prev.emoji} ${prev.title}</a>` : '<span></span>'}
       ${next ? `<a class="nav-next" href="story.html?id=${encodeURIComponent(next.id)}">${next.emoji} ${next.title} →</a>` : '<span></span>'}
@@ -74,11 +89,39 @@
 
   drawMiniMap('#story-minimap', story, cat.color);
   setupLock();
+  setupShare();
 
-  /* ---------- 通關密語解鎖 ---------- */
+  /* ---------- 分享按鈕（引流） ---------- */
+  function setupShare() {
+    const cfg = window.ADV_CONFIG || {};
+    const base = (cfg.siteUrl || location.origin).replace(/\/$/, '');
+    const url = `${base}/story.html?id=${encodeURIComponent(story.id)}`;
+    const text = `${story.title}｜${story.summary}`;
+    const eu = encodeURIComponent(url);
+    const et = encodeURIComponent(text);
+    const links = {
+      line: `https://social-plugins.line.me/lineit/share?url=${eu}`,
+      threads: `https://www.threads.net/intent/post?text=${et}%20${eu}`,
+      fb: `https://www.facebook.com/sharer/sharer.php?u=${eu}`,
+      x: `https://twitter.com/intent/tweet?text=${et}&url=${eu}`,
+    };
+    document.querySelectorAll('.share-btn[data-net]').forEach((a) => {
+      a.href = links[a.dataset.net];
+    });
+    const copyBtn = document.getElementById('copy-btn');
+    copyBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(url); copyBtn.textContent = '✅ 已複製'; }
+      catch (e) { copyBtn.textContent = url; }
+      setTimeout(() => (copyBtn.textContent = '🔗 複製連結'), 1800);
+    });
+  }
+
+  /* ---------- 通關密語解鎖 / 付費 ---------- */
   function setupLock() {
     const Unlock = window.Unlock;
+    const cfg = window.ADV_CONFIG || {};
     const hasVault = Unlock && window.VAULT && window.VAULT[story.id];
+    const free = Unlock && Unlock.isFree(story.id);
     const lockUi = document.getElementById('lock-ui');
     const badge = document.getElementById('lock-badge');
     const revealBody = document.getElementById('reveal-body');
@@ -86,47 +129,58 @@
     const input = document.getElementById('lock-input');
     const err = document.getElementById('lock-err');
 
-    // 這則沒有加密內容 → 只留鉤子，不顯示解鎖框。
-    if (!hasVault) {
-      if (lockUi) lockUi.hidden = true;
-      return;
-    }
-    // 環境不支援 Web Crypto（非安全內容）→ 給提示。
+    if (!hasVault) { if (lockUi) lockUi.hidden = true; return; }
     if (!window.crypto || !crypto.subtle) {
       lockUi.innerHTML =
         '<p class="lock-prompt">此瀏覽器環境無法解密（需 https 或 localhost）。</p>';
       return;
     }
 
+    // 付費按鈕：只有設定了 payUrl、且非免費試閱時才顯示。
+    if (!free && cfg.payUrl) {
+      const cta = document.getElementById('pay-cta');
+      const btn = document.getElementById('pay-btn');
+      btn.href = cfg.payUrl;
+      btn.textContent = `🔓 付費解鎖完整故事 · ${cfg.payPrice || ''}`.trim();
+      document.getElementById('pay-note').textContent = cfg.payNote || '';
+      cta.hidden = false;
+    }
+
     function reveal(paragraphs) {
       revealBody.innerHTML = paragraphs.map((p) => `<p>${p}</p>`).join('');
       revealBody.hidden = false;
       lockUi.hidden = true;
-      badge.textContent = '🔓 已解鎖 · 完整故事';
+      badge.textContent = free ? '🎁 免費試閱 · 完整故事' : '🔓 已解鎖 · 完整故事';
     }
 
-    async function tryUnlock(code, { silent } = {}) {
+    async function tryUnlock(code, { silent, remember } = {}) {
       try {
         const paragraphs = await Unlock.decryptStory(story.id, code);
-        Unlock.rememberCode(code);
+        if (remember) Unlock.rememberCode(code);
         reveal(paragraphs);
         return true;
       } catch (e) {
-        if (!silent) err.textContent = '密語不對，再試一次（或來跟我要正確的 😏）';
+        if (!silent) err.textContent = '密語不對，再試一次（或付費取得 😏）';
         return false;
       }
     }
 
-    // 這趟造訪已解鎖過 → 直接用存好的密語自動解鎖。
+    // 1) 這趟已用付費密語解鎖過 → 自動套用。 2) 免費試閱 → 用公開密語自動解鎖。
     const saved = Unlock.savedCode();
-    if (saved) tryUnlock(saved, { silent: true });
+    if (saved) {
+      tryUnlock(saved, { silent: true }).then((ok) => {
+        if (!ok && free) tryUnlock(Unlock.freeCode(), { silent: true });
+      });
+    } else if (free) {
+      tryUnlock(Unlock.freeCode(), { silent: true });
+    }
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       err.textContent = '';
       const code = input.value;
       if (!code.trim()) return;
-      tryUnlock(code);
+      tryUnlock(code, { remember: true });
     });
   }
 

@@ -62,6 +62,7 @@
         <div class="card-top">
           <span class="card-emoji">${d.emoji}</span>
           <span class="card-tags">
+            ${(window.FREE_IDS || []).includes(d.id) ? '<span class="card-free">🎁 免費</span>' : ''}
             ${d.year ? `<span class="card-year">${d.year}</span>` : ''}
             <span class="card-cat" style="--cat:${cat.color}">${cat.label}</span>
           </span>
@@ -187,6 +188,15 @@
     });
   }
 
+  /* ---------- 電子報連結（設定了才顯示） ---------- */
+  function setupNewsletter() {
+    const cfg = window.ADV_CONFIG || {};
+    if (!cfg.newsletterUrl) return;
+    const el = document.getElementById('newsletter');
+    document.getElementById('newsletter-link').href = cfg.newsletterUrl;
+    el.hidden = false;
+  }
+
   /* ---------- 啟動 ---------- */
   async function init() {
     renderStats();
@@ -194,6 +204,7 @@
     renderThrillFilters();
     renderGrid();
     setupViewToggle();
+    setupNewsletter();
     mapApi = await window.renderWorldMap('#world-map');
   }
 
