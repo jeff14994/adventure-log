@@ -1,0 +1,104 @@
+/*
+ * 內文頁邏輯：依網址的 ?id= 找到對應故事並渲染，
+ * 右上角用 d3 畫一張聚焦該事件地點的小地圖。
+ */
+
+(function () {
+  const stories = window.STORIES || [];
+  const CATEGORIES = window.CATEGORIES || {};
+
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+  const story = stories.find((s) => s.id === id) || stories[0];
+
+  const root = document.getElementById('story-root');
+  if (!story) {
+    root.innerHTML = '<p class="story-missing">找不到這則故事。<a href="index.html">回首頁</a></p>';
+    return;
+  }
+
+  document.title = `${story.title} — 驚險人生`;
+
+  const cat = CATEGORIES[story.category] || { label: '其他', color: '#8b9bb4' };
+  const idx = stories.indexOf(story);
+  const prev = stories[idx - 1];
+  const next = stories[idx + 1];
+
+  const paras = story.body.map((p) => `<p>${p}</p>`).join('');
+
+  // 驚險指數：10 顆點
+  const dots = Array.from({ length: 10 }, (_, i) =>
+    `<span class="dot ${i < story.thrill ? 'on' : ''}"></span>`
+  ).join('');
+
+  root.innerHTML = `
+    <a class="back-link" href="index.html">← 回到驚險足跡</a>
+    <header class="story-header" style="--cat:${cat.color}">
+      <div class="story-head-text">
+        <div class="story-meta">
+          <span class="story-cat" style="--cat:${cat.color}">${cat.label}</span>
+          <span class="story-loc">📍 ${story.place}</span>
+        </div>
+        <h1 class="story-title"><span class="story-emoji">${story.emoji}</span>${story.title}</h1>
+        <p class="story-summary">${story.summary}</p>
+        <div class="story-thrill">
+          <span class="st-label">驚險指數</span>
+          <span class="st-dots">${dots}</span>
+          <span class="st-num">${story.thrill}<span class="st-max">/10</span></span>
+        </div>
+      </div>
+      <div class="story-minimap" id="story-minimap" aria-label="事件地點地圖"></div>
+    </header>
+
+    <article class="story-body">${paras}</article>
+
+    <nav class="story-nav">
+      ${prev ? `<a class="nav-prev" href="story.html?id=${encodeURIComponent(prev.id)}">← ${prev.emoji} ${prev.title}</a>` : '<span></span>'}
+      ${next ? `<a class="nav-next" href="story.html?id=${encodeURIComponent(next.id)}">${next.emoji} ${next.title} →</a>` : '<span></span>'}
+    </nav>`;
+
+  drawMiniMap('#story-minimap', story, cat.color);
+
+  /* ---------- d3 迷你地圖：聚焦單一事件 ---------- */
+  async function drawMiniMap(sel, story, color) {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    const size = el.clientWidth || 260;
+    const h = Math.round(size * 0.78);
+
+    let topo;
+    try {
+      topo = await d3.json('vendor/countries-110m.json');
+    } catch (e) {
+      el.innerHTML = '<span class="mini-fallback">📍</span>';
+      return;
+    }
+    const land = topojson.feature(topo, topo.objects.countries);
+
+    // 以事件座標為中心，用正射投影營造「地球局部」的感覺。
+    const projection = d3
+      .geoOrthographic()
+      .rotate([-story.coords[0], -story.coords[1]])
+      .fitExtent([[10, 10], [size - 10, h - 10]], { type: 'Sphere' });
+    const path = d3.geoPath(projection);
+
+    const svg = d3
+      .select(el)
+      .append('svg')
+      .attr('viewBox', `0 0 ${size} ${h}`)
+      .attr('class', 'mini-svg')
+      .attr('aria-hidden', 'true');
+
+    svg.append('path').attr('class', 'mini-sphere').attr('d', path({ type: 'Sphere' }));
+    svg.append('path').attr('class', 'mini-graticule').attr('d', path(d3.geoGraticule10()));
+    svg.append('path').attr('class', 'mini-land').attr('d', path(land));
+
+    const p = projection(story.coords);
+    if (p) {
+      const g = svg.append('g').attr('transform', `translate(${p[0]},${p[1]})`);
+      g.append('circle').attr('class', 'mini-pulse').attr('r', 7).attr('fill', color);
+      g.append('circle').attr('r', 4.5).attr('fill', color)
+        .attr('stroke', '#05070d').attr('stroke-width', 1.5);
+    }
+  }
+})();

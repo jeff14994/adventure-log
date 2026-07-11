@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>驚險人生 — 我的九次心跳瞬間</title>
+  <meta name="description" content="橫跨美國、越南、台灣的九則驚險經歷，用一張 d3.js 互動地圖串起每一次心跳加速的瞬間。" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/blog.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <p class="kicker">驚險人生 · Thrilling Life</p>
+      <h1 class="hero-title">我的九次<span class="accent">心跳瞬間</span></h1>
+      <p class="hero-sub">
+        受困雪山、簽證過期、夜市氣爆、機上蟑螂、跌倒噴血、上班車禍、殺價鬥智、地主衝出來——
+        每一個座標，都是一段回想起來還會手心冒汗的故事。
+      </p>
+      <p class="stat-line" id="stat-line"></p>
+    </header>
+
+    <section class="map-section">
+      <div class="section-head">
+        <h2>驚險足跡地圖</h2>
+        <span class="section-hint">點擊地圖上的標記，或往下滑看故事卡片</span>
+      </div>
+      <div class="map-wrap" id="world-map"></div>
+    </section>
+
+    <section class="grid-section">
+      <div class="section-head">
+        <h2>九則故事</h2>
+        <div class="chip-row" id="category-filter"></div>
+      </div>
+      <div class="story-grid" id="story-grid"></div>
+    </section>
+
+    <footer class="site-footer">
+      <p>以 <b>d3.js</b> 打造的個人驚險故事集 · 純靜態、零建置、可直接部署於 GitHub Pages</p>
+    </footer>
+  </div>
+
+  <!-- 本地 vendor（零外部相依，可離線運作） -->
+  <script src="vendor/d3.v7.min.js"></script>
+  <script src="vendor/topojson-client.min.js"></script>
+  <!-- 資料與渲染 -->
+  <script src="js/data.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>
