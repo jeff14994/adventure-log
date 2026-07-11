@@ -1,1 +1,1 @@
-# -adventure-log
+# adventure-log
