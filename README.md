@@ -19,7 +19,7 @@ adventure-log/
 │   ├── data.js         ★ 唯一資料來源：故事（含年份、鉤子）+ 分類定義（公開內容）
 │   ├── map.js          d3 世界地圖（geoNaturalEarth1 + 可點擊標記）
 │   ├── timeline.js     d3 垂直時間軸（依年份由舊到新、左右交錯、捲動進場）
-│   ├── home.js         首頁邏輯：地圖／時間軸切換、卡片牆、d3 計量條、篩選、統計
+│   ├── home.js         首頁邏輯：地圖／時間軸切換、卡片牆、d3 計量條、雙篩選（分類＋驚嚇程度）、統計
 │   ├── story.js        內文頁邏輯：讀 ?id=、d3 迷你地圖、鉤子＋解鎖區塊、上/下篇
 │   ├── unlock.js       通關密語解鎖（瀏覽器端 Web Crypto AES-GCM 解密）
 │   └── vault.js        完整故事的「加密內容」（由 tools/build-vault.mjs 產生）

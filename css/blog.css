@@ -144,6 +144,23 @@ a { color: inherit; text-decoration: none; }
 .tip-title { font-weight: 700; }
 .tip-place { color: var(--text-mute); font-size: 12px; }
 
+/* ---------------- Filter bar ---------------- */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 0 0 20px;
+}
+.filter-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filter-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-mute);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.grid-empty { color: var(--text-dim); text-align: center; padding: 40px 0; font-size: 15px; }
+
 /* ---------------- Category chips ---------------- */
 .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {

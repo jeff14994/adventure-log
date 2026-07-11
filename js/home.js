@@ -9,10 +9,21 @@
 
   const grid = document.getElementById('story-grid');
   const filterRow = document.getElementById('category-filter');
+  const thrillRow = document.getElementById('thrill-filter');
+  const emptyEl = document.getElementById('grid-empty');
   const statEl = document.getElementById('stat-line');
 
   let activeCat = 'all';
+  let activeThrill = 'all';
   let mapApi = null;
+
+  // 驚嚇程度分級（1–10 分成三檔），各自帶代表色。
+  const THRILL_TIERS = [
+    { key: 'low',  label: '😅 小驚',  color: '#34d399', test: (t) => t <= 5 },
+    { key: 'mid',  label: '😰 驚險',  color: '#f59e0b', test: (t) => t >= 6 && t <= 7 },
+    { key: 'high', label: '😱 爆表',  color: '#ef4444', test: (t) => t >= 8 },
+  ];
+  const tierOf = (t) => (THRILL_TIERS.find((x) => x.test(t)) || {}).key;
 
   /* ---------- d3 驚險指數計量條 ---------- */
   // 在卡片上畫一條 10 格的分段條，填滿到 thrill 值。
@@ -67,13 +78,18 @@
       </a>`;
   }
 
+  // 兩個篩選條件同時作用（分類 AND 驚嚇程度）。
+  function matches(s) {
+    const catOk = activeCat === 'all' || s.category === activeCat;
+    const thrillOk = activeThrill === 'all' || tierOf(s.thrill) === activeThrill;
+    return catOk && thrillOk;
+  }
+
   function renderGrid() {
-    const list =
-      activeCat === 'all'
-        ? stories
-        : stories.filter((s) => s.category === activeCat);
+    const list = stories.filter(matches);
 
     grid.innerHTML = list.map(cardHtml).join('');
+    if (emptyEl) emptyEl.hidden = list.length > 0;
 
     // 為每張卡片畫 d3 計量條
     list.forEach((d) => {
@@ -89,28 +105,43 @@
     });
   }
 
+  // 小工具：綁定一排 chip 的點擊切換（單選）。
+  function wireChipRow(row, onPick) {
+    row.addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip');
+      if (!btn) return;
+      row.querySelectorAll('.chip').forEach((c) => c.classList.toggle('active', c === btn));
+      onPick(btn.dataset.key);
+      renderGrid();
+    });
+  }
+
   /* ---------- 分類篩選 ---------- */
   function renderFilters() {
     const cats = Array.from(new Set(stories.map((s) => s.category)));
-    const chips = [`<button class="chip active" data-cat="all">全部 ${stories.length}</button>`];
+    const chips = [`<button class="chip active" data-key="all">全部 ${stories.length}</button>`];
     cats.forEach((key) => {
       const c = CATEGORIES[key] || { label: key, color: '#8b9bb4' };
       const n = stories.filter((s) => s.category === key).length;
       chips.push(
-        `<button class="chip" data-cat="${key}" style="--cat:${c.color}">${c.label} ${n}</button>`
+        `<button class="chip" data-key="${key}" style="--cat:${c.color}">${c.label} ${n}</button>`
       );
     });
     filterRow.innerHTML = chips.join('');
+    wireChipRow(filterRow, (key) => (activeCat = key));
+  }
 
-    filterRow.addEventListener('click', (e) => {
-      const btn = e.target.closest('.chip');
-      if (!btn) return;
-      activeCat = btn.dataset.cat;
-      filterRow
-        .querySelectorAll('.chip')
-        .forEach((c) => c.classList.toggle('active', c === btn));
-      renderGrid();
+  /* ---------- 驚嚇程度篩選 ---------- */
+  function renderThrillFilters() {
+    const chips = [`<button class="chip active" data-key="all">全部 ${stories.length}</button>`];
+    THRILL_TIERS.forEach((tier) => {
+      const n = stories.filter((s) => tier.test(s.thrill)).length;
+      chips.push(
+        `<button class="chip" data-key="${tier.key}" style="--cat:${tier.color}">${tier.label} ${n}</button>`
+      );
     });
+    thrillRow.innerHTML = chips.join('');
+    wireChipRow(thrillRow, (key) => (activeThrill = key));
   }
 
   /* ---------- 統計列 ---------- */
@@ -160,6 +191,7 @@
   async function init() {
     renderStats();
     renderFilters();
+    renderThrillFilters();
     renderGrid();
     setupViewToggle();
     mapApi = await window.renderWorldMap('#world-map');

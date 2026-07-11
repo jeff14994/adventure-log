@@ -36,9 +36,19 @@
     <section class="grid-section">
       <div class="section-head">
         <h2>十一則故事</h2>
-        <div class="chip-row" id="category-filter"></div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-label">分類</span>
+          <div class="chip-row" id="category-filter"></div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">驚嚇程度</span>
+          <div class="chip-row" id="thrill-filter"></div>
+        </div>
       </div>
       <div class="story-grid" id="story-grid"></div>
+      <p class="grid-empty" id="grid-empty" hidden>這個組合下沒有故事，換個條件試試 👀</p>
     </section>
 
     <footer class="site-footer">
