@@ -53,12 +53,19 @@
 
     <article class="story-body">${paras}</article>
 
-    ${story.teaser ? `
-    <aside class="story-hook" style="--cat:${cat.color}">
-      <span class="hook-badge">✋ 故事只到這裡</span>
-      <p class="hook-text">${story.teaser}</p>
-      <p class="hook-cta">好奇後續？下次見面，直接問我這一段。</p>
-    </aside>` : ''}
+    <aside class="story-lock" id="story-lock" style="--cat:${cat.color}">
+      <span class="hook-badge" id="lock-badge">✋ 故事只到這裡</span>
+      ${story.teaser ? `<p class="hook-text">${story.teaser}</p>` : ''}
+      <div class="lock-ui" id="lock-ui">
+        <p class="lock-prompt">🔒 完整故事上了鎖。跟我要一組通關密語，或直接當面問我這一段。</p>
+        <form class="lock-form" id="lock-form" autocomplete="off">
+          <input id="lock-input" type="password" placeholder="輸入通關密語…" aria-label="通關密語" />
+          <button type="submit" class="lock-btn">解鎖</button>
+        </form>
+        <span class="lock-err" id="lock-err" role="alert"></span>
+      </div>
+      <div class="reveal-body" id="reveal-body" hidden></div>
+    </aside>
 
     <nav class="story-nav">
       ${prev ? `<a class="nav-prev" href="story.html?id=${encodeURIComponent(prev.id)}">← ${prev.emoji} ${prev.title}</a>` : '<span></span>'}
@@ -66,6 +73,62 @@
     </nav>`;
 
   drawMiniMap('#story-minimap', story, cat.color);
+  setupLock();
+
+  /* ---------- 通關密語解鎖 ---------- */
+  function setupLock() {
+    const Unlock = window.Unlock;
+    const hasVault = Unlock && window.VAULT && window.VAULT[story.id];
+    const lockUi = document.getElementById('lock-ui');
+    const badge = document.getElementById('lock-badge');
+    const revealBody = document.getElementById('reveal-body');
+    const form = document.getElementById('lock-form');
+    const input = document.getElementById('lock-input');
+    const err = document.getElementById('lock-err');
+
+    // 這則沒有加密內容 → 只留鉤子，不顯示解鎖框。
+    if (!hasVault) {
+      if (lockUi) lockUi.hidden = true;
+      return;
+    }
+    // 環境不支援 Web Crypto（非安全內容）→ 給提示。
+    if (!window.crypto || !crypto.subtle) {
+      lockUi.innerHTML =
+        '<p class="lock-prompt">此瀏覽器環境無法解密（需 https 或 localhost）。</p>';
+      return;
+    }
+
+    function reveal(paragraphs) {
+      revealBody.innerHTML = paragraphs.map((p) => `<p>${p}</p>`).join('');
+      revealBody.hidden = false;
+      lockUi.hidden = true;
+      badge.textContent = '🔓 已解鎖 · 完整故事';
+    }
+
+    async function tryUnlock(code, { silent } = {}) {
+      try {
+        const paragraphs = await Unlock.decryptStory(story.id, code);
+        Unlock.rememberCode(code);
+        reveal(paragraphs);
+        return true;
+      } catch (e) {
+        if (!silent) err.textContent = '密語不對，再試一次（或來跟我要正確的 😏）';
+        return false;
+      }
+    }
+
+    // 這趟造訪已解鎖過 → 直接用存好的密語自動解鎖。
+    const saved = Unlock.savedCode();
+    if (saved) tryUnlock(saved, { silent: true });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      err.textContent = '';
+      const code = input.value;
+      if (!code.trim()) return;
+      tryUnlock(code);
+    });
+  }
 
   /* ---------- d3 迷你地圖：聚焦單一事件 ---------- */
   async function drawMiniMap(sel, story, color) {

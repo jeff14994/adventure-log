@@ -16,11 +16,16 @@ adventure-log/
 ├── story.html          內文頁樣板（以 ?id= 決定顯示哪一則）
 ├── css/blog.css        暗色主題
 ├── js/
-│   ├── data.js         ★ 唯一資料來源：九則故事（含年份、鉤子）+ 分類定義
+│   ├── data.js         ★ 唯一資料來源：故事（含年份、鉤子）+ 分類定義（公開內容）
 │   ├── map.js          d3 世界地圖（geoNaturalEarth1 + 可點擊標記）
 │   ├── timeline.js     d3 垂直時間軸（依年份由舊到新、左右交錯、捲動進場）
 │   ├── home.js         首頁邏輯：地圖／時間軸切換、卡片牆、d3 計量條、篩選、統計
-│   └── story.js        內文頁邏輯：讀 ?id=、d3 迷你地圖、鉤子區塊、上/下篇
+│   ├── story.js        內文頁邏輯：讀 ?id=、d3 迷你地圖、鉤子＋解鎖區塊、上/下篇
+│   ├── unlock.js       通關密語解鎖（瀏覽器端 Web Crypto AES-GCM 解密）
+│   └── vault.js        完整故事的「加密內容」（由 tools/build-vault.mjs 產生）
+├── tools/
+│   ├── build-vault.mjs 把私密原文加密成 js/vault.js 的建置腳本
+│   └── plaintext.json  完整故事原文（★ 被 .gitignore 排除，不進 repo）
 └── vendor/
     ├── d3.v7.min.js
     ├── topojson-client.min.js
@@ -60,6 +65,34 @@ adventure-log/
 | 卡片牆 | SVG 分段條 | 每張卡片的「驚險指數」由 d3 畫成 10 格計量條 |
 | 內文頁 | `geoOrthographic` | 以事件座標為中心的「地球局部」迷你地圖 |
 | 統計列 | `d3.max` / `d3.mean` | 國家數、最高與平均驚險指數 |
+
+## 🔒 完整故事的通關密語（access code）
+
+每則故事分成兩層：
+
+- **公開層**（`js/data.js`）：標題、地點、年份、驚險指數、一句話鉤子、鋪陳段落——
+  刻意在最關鍵處停住。
+- **加密層**（`js/vault.js`）：完整故事的「後續／結局」段落，用 **AES-GCM** 加密。
+  只有輸入正確的通關密語，瀏覽器才會在本機把它解出來。
+
+> 這是「真的加密」，不是假的 JS 密碼判斷：明文只存在你本機的
+> `tools/plaintext.json`（已被 `.gitignore` 排除），**repo 裡永遠只有密文**，
+> 沒有密語誰都讀不到完整內容。解鎖一次後，整趟造訪其他故事會自動解鎖
+> （存在 `sessionStorage`）。密語大小寫不敏感。
+
+**目前的通關密語：`staycurious`**
+
+### 改密語 / 改完整故事內容
+
+1. 編輯 `tools/plaintext.json`（每個 `id` 對應完整故事的段落陣列）。
+2. 重新加密產生 `js/vault.js`：
+   ```bash
+   ACCESS_CODE="你的新密語" node tools/build-vault.mjs
+   ```
+   （不帶 `ACCESS_CODE` 就會用預設的 `staycurious`。）
+3. commit 並 push `js/vault.js`——GitHub Actions 會自動重新部署。
+
+> `tools/plaintext.json` 不在 repo 裡，請自行妥善保存；沒有它就無法重新加密。
 
 ## 如何新增 / 修改故事
 

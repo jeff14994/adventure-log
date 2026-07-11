@@ -1,0 +1,6 @@
+# 完整故事的私密原文——絕不進 repo（只有加密後的 js/vault.js 才會被提交）
+tools/plaintext.json
+
+# 系統雜項
+.DS_Store
+node_modules/
