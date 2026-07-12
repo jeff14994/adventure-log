@@ -8,3 +8,4 @@ node_modules/
 # 付費產品內容（完整手冊）不進公開 repo
 docs/haggle-playbook.md
 docs/*.pdf
+docs/how-to-sell.md
